@@ -205,3 +205,38 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+# --- PAHG bigsearch project specific ---
+# Backups produced by maintenance scripts
+catalog.*.bak.json
+catalog.before_*.bak.json
+*.bak
+*.bak.*
+*.old
+*.orig
+*.rej
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Optional: local scratch/cache/output (keep .gitkeep if needed)
+cache/
+scratch/
+tmp/
+output/
+reports/
+logs/
+
+# If you export large, ephemeral tables locally, prefer putting them in /output/
+# and ignore them there; otherwise keep .tsv/.csv versioned.
+# Uncomment if you want all top-level CSV/TSV ignored (not recommended):
+# *.csv
+# *.tsv
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+
+# If you decide to commit VS Code settings, remove this ignore.
+.vscode/
