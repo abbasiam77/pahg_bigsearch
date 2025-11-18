@@ -1,44 +1,10 @@
-# PAHG BigSearch: Catalog & Index for Gene Families
+# PAHG BigSearch: Catalog & Index Builder
 
-A minimal, reproducible toolkit to build and validate **`catalog.json`** and **`index.bs`** for the **PAHG** partner dataset, enabling downstream integration with the **BIG Search Engine** and inclusion in public partner listings.
+This repository contains scripts and data to build a **PAHG gene-family catalog** (`catalog.json`) and a **search index** (`index.bs`) suitable for downstream use, including:
+- Integration with **BIG Search** (CNCB/NGDC): https://ngdc.cncb.ac.cn/search/specific?db=pahg&q=
+- Listing PAHG as a **Partner Database**: https://ngdc.cncb.ac.cn/partners
 
-> **Goal:** curate PAHG gene families → generate a normalized `catalog.json` → compile a searchable `index.bs` → ship both with validation and sanity checks.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Repository Layout](#repository-layout)
-- [Install](#install)
-- [Quick Start](#quick-start)
-- [Data Model](#data-model)
-  - [`catalog.json` schema](#catalogjson-schema)
-  - [`index.bs` format](#indexbs-format)
-- [Batch Additions](#batch-additions)
-- [Makefile Targets](#makefile-targets)
-- [Validation & Checks](#validation--checks)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Overview
-
-This repo hosts scripts and data for building PAHG’s public search layer:
-
-1. **Collect** family/member metadata (from PAHG web or internal curation).
-2. **Assemble** a canonical **`catalog.json`**.
-3. **Compile** a line-oriented **`index.bs`** (for ingestion by search backends).
-4. **Validate** structure and perform quality checks (URLs, duplicates, counts).
-5. **Publish** artifacts to GitHub for downstream partners.
-
-**Primary artifacts**
-
-- `catalog.json` — canonical catalog of **families** and **members**.
-- `index.bs` — flattened, line-by-line JSON records (`DB`, `ENTRY`) for search.
+The workflow is designed for **append-only curation**: you author JSON “batches” for newly curated families; the toolchain merges them into `catalog.json` (dedupe-safe), validates the catalog, and emits a reproducible `index.bs`.
 
 ---
 
@@ -48,10 +14,12 @@ This repo hosts scripts and data for building PAHG’s public search layer:
 .
 ├── Makefile
 ├── README.md
-├── catalog.json                # generated
-├── index.bs                    # generated
+├── LICENSE
+├── .gitignore
+├── catalog.json                # built from data/batches (tracked)
+├── index.bs                    # generated (ignored by default; see below)
 ├── data/
-│   └── batches/                # JSON batches you author (append-only history)
+│   └── batches/                # append-only JSON batches you author
 │       ├── 2025-11-17_batch.json
 │       └── ...
 └── scripts/
@@ -61,66 +29,89 @@ This repo hosts scripts and data for building PAHG’s public search layer:
     └── quick_checks.sh         # URL & duplicate checks, counts, etc.
 ```
 
-> You may add `schemas/` for JSONSchema if desired. This project ships with lightweight, script-based validation to keep dependencies minimal.
-
----
-
-## Install
-
-- Python 3.9+ recommended.
-- No heavy dependencies; standard library only.
-
-Create a virtual environment (optional but recommended):
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-python -V
-```
+> If a directory/file is missing, create it (empty) and commit; the scripts assume the above structure.
 
 ---
 
 ## Quick Start
 
-From the repository root:
+### Prerequisites
+- **Python 3.8+**
+- **GNU make**
+- **bash** (for `scripts/quick_checks.sh`)
 
+(Optional but recommended)
 ```bash
-# 1) Build/refresh catalog from one or more batch files
-make build BATCH="data/batches/2025-11-17_batch.json"
-
-# 2) Generate index.bs from catalog.json
-make index
-
-# 3) Validate & run checks
-make all_checks
-
-# 4) One-shot (build + index + validations + checks)
-make all
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt  # if you add one later
 ```
 
-Artifacts will be written to `catalog.json` and `index.bs`. Backups are created automatically before destructive updates (e.g., `*.bak.json`).
+### 1) Add a curation batch
 
----
+Create a file like `data/batches/2025-11-17_batch.json`:
 
-## Data Model
-
-### `catalog.json` schema
-
-Minimal required shape (all strings unless noted):
-
-```jsonc
+```json
 {
   "families": [
     {
-      "familyId": 215,                      // integer, unique & stable
-      "familySymbol": "KCNJ",               // short stable key
+      "familySymbol": "PPARGC",
+      "familyTitle": "Peroxisome Proliferator-Activated Receptor Gamma, Coactivator (PPARGC)",
+      "members": [
+        {"memberId": "835", "geneSymbol": "PPARGC1A", "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=835"},
+        {"memberId": "836", "geneSymbol": "PPARGC1B", "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=836"},
+        {"memberId": "837", "geneSymbol": "PPRC1",    "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=837"}
+      ]
+    }
+  ]
+}
+```
+
+**Rules:**
+- `familySymbol` = short unique tag (e.g., `KCNJ`, `PPARGC`).
+- `familyTitle` = human-readable family title.
+- Each `member` must include `memberId` (string), `geneSymbol`, and a `url` in the form  
+  `https://www.pahgncb.com/genomedb/public/searchmember?mid=<NUM>`.
+
+### 2) Build the catalog and index
+
+```bash
+# Merge batches → catalog.json (dedupe-safe)
+make catalog.json
+
+# Convert catalog.json → index.bs
+make index.bs
+```
+
+### 3) Validate & run quick checks
+
+```bash
+# Structural and field validation
+make validate
+
+# Convenience checks (URL format, counts, within-family duplicates)
+bash scripts/quick_checks.sh
+```
+
+---
+
+## Data Model (Catalog)
+
+`catalog.json` is an object with a single top-level key:
+
+```json
+{
+  "families": [
+    {
+      "familyId": "auto-assigned integer as string",
+      "familySymbol": "KCNJ",
       "familyTitle": "Potassium inwardly rectifying channel subfamily J (KCNJ)",
-      "familyUrl": "https://www.pahgncb.com/genomedb/public/search?family=KCNJ",
-      "createdAt": 1731810813,              // unix epoch (seconds)
-      "updatedAt": 1731810813,              // unix epoch (seconds)
+      "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=...",   // optional
+      "createdAt": 1731513600,       // unix timestamp (optional)
+      "updatedAt": 1731513600,       // unix timestamp (optional)
       "members": [
         {
-          "memberId": "296",                // PAHG member internal id (string ok)
+          "memberId": "296",
           "geneSymbol": "KCNJ6",
           "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=296"
         }
@@ -131,141 +122,129 @@ Minimal required shape (all strings unless noted):
 ```
 
 **Notes**
-
-- `familySymbol` and `familyTitle` must be present.
-- `familyId` must be unique monotonically increasing over time (scripts auto-assign the next id).
-- A member’s `url` must match:  
-  `https://www.pahgncb.com/genomedb/public/searchmember?mid=<digits>`
-- **Cross-family reuse of genes is allowed** (e.g., same `geneSymbol` in multiple families). The checks only dedupe **within** a family.
-
-### `index.bs` format
-
-A newline-delimited file where each line is a tuple: `TAG<TAB>JSON`
-
-- The first line is a single **`DB`** record describing the dataset (name, version, counts).
-- Subsequent lines are **`ENTRY`** records (one per family and one per gene member).
-
-Example (abbreviated):
-
-```
-DB  {"name":"PAHG","version":"2025-11-17","families":220,"genes":1227}
-ENTRY   {"type":"family","id":"KCNJ","title":"Potassium inwardly rectifying channel subfamily J (KCNJ)","attrs":{"familyId":215,"symbol":"KCNJ"}}
-ENTRY   {"type":"gene","id":"KCNJ6","title":"KCNJ6","attrs":{"familySymbol":"KCNJ","memberId":"296","url":"https://www.pahgncb.com/genomedb/public/searchmember?mid=296"}}
-```
+- `familyId` is assigned during merging (monotonic).  
+- The pipeline **allows** the same `geneSymbol` to exist under multiple families (phylogenetically meaningful).
+- Within a given family, duplicate `geneSymbol` entries are removed.
 
 ---
 
-## Batch Additions
+## Generated Artifacts Policy
 
-Author a batch file in `data/batches/` containing families to add/update:
+- **`catalog.json`** — **tracked** (canonical merged state).
+- **`index.bs`** — **generated** and **ignored by default** (reproducible from `catalog.json`).
 
-```jsonc
-{
-  "families": [
-    {
-      "familySymbol": "PPARGC",
-      "familyTitle": "Peroxisome Proliferator-Activated Receptor Gamma, Coactivator (PPARGC)",
-      "members": [
-        {"memberId":"835","geneSymbol":"PPARGC1A","url":"https://www.pahgncb.com/genomedb/public/searchmember?mid=835"},
-        {"memberId":"836","geneSymbol":"PPARGC1B","url":"https://www.pahgncb.com/genomedb/public/searchmember?mid=836"},
-        {"memberId":"837","geneSymbol":"PPRC1","url":"https://www.pahgncb.com/genomedb/public/searchmember?mid=837"}
-      ]
-    }
-  ]
-}
-```
-
-Then run:
+If you want to **publish `index.bs`** (e.g., attach exact bytes in a tagged release):
 
 ```bash
-make build BATCH="data/batches/2025-11-17_ppargc.json"
-make index
-make all_checks
+# Start tracking index.bs
+sed -i '/^index\.bs$/d' .gitignore
+git add .gitignore index.bs
+git commit -m "track index.bs artifact for release"
+git push
 ```
 
-- The builder **auto-fills** `familyId`, `createdAt`, `updatedAt` if missing.
-- Families are matched by `familySymbol`. If `familySymbol` exists, members are merged (duplicates within the *same* family are ignored).
+Revert to ignoring later:
+
+```bash
+echo 'index.bs' >> .gitignore
+git rm --cached index.bs
+git commit -m "chore: ignore generated index.bs"
+git push
+```
 
 ---
 
 ## Makefile Targets
 
-- `make build` — Merge batch files into `catalog.json`.  
-  Use `BATCH="file1.json file2.json"` to provide one or more batches.
-- `make index` — Compile `index.bs` from the current `catalog.json`.
-- `make validate` — Run structural validations.
-- `make checks` — Quick sanity checks (counts, URL patterns, within-family dupes).
-- `make all` — `build` → `index` → `validate` → `checks`.
-- `make clean` — Remove `index.bs` (backups of JSON retained).
-
----
-
-## Validation & Checks
-
-**Structural validations** (Python):
-- Required family fields (`familySymbol`, `familyTitle`).
-- Member URL regex: `^https://www\.pahgncb\.com/genomedb/public/searchmember\?mid=\d+$`
-- `familyId` is integer; `createdAt`/`updatedAt` are epoch seconds.
-
-**Sanity checks** (Bash + Python):
-- Totals (`families`, `members`), and `index.bs` line counts (DB + ENTRY).
-- Within-family duplicate members (same `geneSymbol` under one family) → removed.
-- Cross-family duplicates **allowed** and reported only if you opt-in.
-- Detect malformed lines in `index.bs` (each `ENTRY` must be valid JSON).
-
-Run all:
-
 ```bash
-make all_checks
+make catalog.json   # merges data/batches → catalog.json
+make index.bs       # catalog.json → index.bs
+make validate       # schema/field checks
+make all            # = catalog.json + index.bs
 ```
 
 ---
 
-## Examples
+## Validation & Quality Checks
 
-- **Build from scratch** (no batches, script may include default seed or prompt):
-  ```bash
-  make build
-  make index
-  make all_checks
-  ```
+### `make validate` (Python)
+- Ensures required keys exist.
+- Verifies URL format: `https://www.pahgncb.com/genomedb/public/searchmember?mid=<digits>`.
+- Confirms `members` arrays are present and non-empty.
 
-- **Incremental add** (recommended workflow):
-  ```bash
-  # Add a new batch file with families/members you curated
-  git add data/batches/2025-11-18_newfamilies.json
-  make build BATCH="data/batches/2025-11-18_newfamilies.json"
-  make index
-  make all_checks
-  git commit -m "Add 2025-11-18 batch; rebuild catalog & index"
-  ```
+### `scripts/quick_checks.sh` (bash)
+- Confirms JSON is parseable.
+- Counts families/members.
+- Scans for malformed member URLs.
+- Detects **within-family** duplicate `geneSymbol`s (fixes suggested).
+- (Optional) Prints top recently updated families.
+
+Run:
+```bash
+bash scripts/quick_checks.sh
+```
+
+---
+
+## Reproducible Build
+
+Typical workflow:
+
+```bash
+# 1) Author/append new batch JSON(s)
+git add data/batches/2025-11-17_batch.json
+git commit -m "Add PPARGC and PPP2R2 batches"
+
+# 2) Build + Validate
+make catalog.json
+make validate
+make index.bs
+bash scripts/quick_checks.sh
+
+# 3) Commit catalog (index.bs is ignored by default)
+git add catalog.json
+git commit -m "Update catalog.json after new batches"
+git push
+```
 
 ---
 
 ## Troubleshooting
 
-- **KeyError in `make_index_bs.py`** (e.g., `familyTitle` or `familyUrl`):  
-  Ensure batch families supply `familySymbol` and `familyTitle`. `familyUrl` is auto-filled by scripts if omitted.
+- **“KeyError: 'familyUrl' in make_index_bs.py”**  
+  Update scripts or ensure `familyUrl` access is optional in your code. Our current script handles missing `familyUrl` gracefully.
 
-- **Duplicate genes**:  
-  Cross-family duplicates are allowed. Within-family duplicates are dropped automatically (first occurrence wins).
+- **`.gitignore` not respected / junk files show up on GitHub**  
+  Add patterns to `.gitignore`, then **untrack** the files:
+  ```bash
+  git rm -r --cached path-or-file
+  git commit -m "prune junk"
+  git push
+  ```
 
-- **Malformed URL**:  
-  Ensure member URLs follow the exact pattern with a numeric `mid` as provided by PAHG.
-
-- **Timestamps**:  
-  Scripts write epoch seconds; conversions to human-readable are for display only.
+- **Auth failures (HTTPS)**  
+  Use **SSH** remote:
+  ```bash
+  git remote set-url origin git@github.com:<USER>/<REPO>.git
+  ```
 
 ---
 
-## Contributing
+## Contributing / Editing Policy
 
-- Use a new JSON in `data/batches/` per logical curation step.
-- Keep `familySymbol` stable across time (renames require a one-time migration batch).
-- PRs welcome for new checks and CI (e.g., GitHub Actions for `make all`).
+- Treat `data/batches/*.json` as an **append-only audit log** of curation.
+- `catalog.json` is derived; track it to represent the current published state.
+- `index.bs` is derived; **ignore by default**; track only when you explicitly want to publish an artifact.
 
 ---
 
 ## License
 
-This project is released under the **MIT License**. See `LICENSE` for details.
+This project is released under the **MIT License** (see [LICENSE](LICENSE)).
+
+---
+
+## Acknowledgments
+
+- PAHG database curation team.
+- CNCB/NGDC for BIG Search and partner program.
