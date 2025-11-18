@@ -1,0 +1,13 @@
+{
+  "families": [
+    {
+      "familySymbol": "PPARGC",
+      "familyTitle": "Peroxisome Proliferator-Activated Receptor Gamma, Coactivator (PPARGC)",
+      "members": [
+        {"memberId": "835", "geneSymbol": "PPARGC1A", "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=835"},
+        {"memberId": "836", "geneSymbol": "PPARGC1B", "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=836"},
+        {"memberId": "837", "geneSymbol": "PPRC1",    "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=837"}
+      ]
+    }
+  ]
+}
