@@ -67,3 +67,26 @@ catalog.json.bak*
 catalog.*broken*
 catalog.*backup*
 backups/
+
+# ---- repo hygiene (added by cleanup) ----
+# Folders we keep only locally
+For Webhosting/
+Previous files/
+Summary of all Gene Families in PAHG_NoV-11th-2025/
+cripts/
+backups/
+
+# Any backup/derivative files
+*.bak
+*.bak.*
+*.bak.json
+*.r1
+*broken_tail_*
+*current_broken_backup
+*.tmp
+*.temp
+*.swp
+*~
+# Office docs (avoid large binary docs in code repo)
+*.doc
+*.docx
