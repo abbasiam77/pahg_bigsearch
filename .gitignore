@@ -58,7 +58,6 @@ site/
 
 # --- Project-specific ---
 # Generated (can be recreated)
-index.bs
 index.bs.sha256
 
 # Backups / temp
@@ -90,4 +89,3 @@ backups/
 # Office docs (avoid large binary docs in code repo)
 *.doc
 *.docx
-index.bs
