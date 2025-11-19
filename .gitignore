@@ -89,4 +89,4 @@ backups/
 # Office docs (avoid large binary docs in code repo)
 *.doc
 *.docx
-index.bs
+# index.bs
