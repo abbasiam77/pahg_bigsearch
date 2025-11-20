@@ -7927,20 +7927,20 @@
     },
     {
       "familyId": 156,
-      "familySymbol": "TCF/LEF",
+      "familySymbol": "TCF_LEF",
       "familyTitle": "TCF_LEF transcription factor family (TCF)",
       "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=156",
       "familyDescription": "Wnt pathway TCF/LEF TFs.",
       "members": [
         {
+          "memberId": "943",
+          "geneSymbol": "LEF1",
+          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=943"
+        },
+        {
           "memberId": "944",
           "geneSymbol": "TCF7",
           "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=944"
-        },
-        {
-          "memberId": "945",
-          "geneSymbol": "TCF7L2",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=945"
         },
         {
           "memberId": "946",
@@ -7948,9 +7948,9 @@
           "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=946"
         },
         {
-          "memberId": "943",
-          "geneSymbol": "LEF1",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=943"
+          "memberId": "945",
+          "geneSymbol": "TCF7L2",
+          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=945"
         }
       ],
       "createdAt": "0-0-0",
