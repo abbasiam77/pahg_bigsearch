@@ -1668,7 +1668,7 @@
       "familySymbol": "CREB3",
       "familyTitle": "CREB3 transcription factor family (CREB3)",
       "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=194",
-      "familyDescription": "ER stress–responsive bZIP transcription factors.",
+      "familyDescription": "ER stress\u2013responsive bZIP transcription factors.",
       "members": [
         {
           "memberId": "1105",
@@ -5372,7 +5372,7 @@
       "familySymbol": "PDK",
       "familyTitle": "Pyruvate dehydrogenase kinase (PDK)",
       "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=35",
-      "familyDescription": "PDH complex–regulating kinases.",
+      "familyDescription": "PDH complex\u2013regulating kinases.",
       "members": [
         {
           "memberId": "154",
@@ -5818,7 +5818,7 @@
       "familySymbol": "PRKAG",
       "familyTitle": "Protein kinase AMP-activated gamma subunits (PRKAG)",
       "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=38",
-      "familyDescription": "AMPK γ regulatory subunits.",
+      "familyDescription": "AMPK \u03b3 regulatory subunits.",
       "members": [
         {
           "memberId": "164",
@@ -7926,37 +7926,6 @@
       "updatedAt": "19-11-2025"
     },
     {
-      "familyId": "156_1",
-      "familySymbol": "TCF",
-      "familyTitle": "TCF/LEF transcription factor family (TCF/LEF)",
-      "familyUrl": "#",
-      "familyDescription": "Wnt pathway transcription factors.",
-      "members": [
-        {
-          "memberId": "943",
-          "geneSymbol": "LEF1",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=943"
-        },
-        {
-          "memberId": "944",
-          "geneSymbol": "TCF7",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=944"
-        },
-        {
-          "memberId": "945",
-          "geneSymbol": "TCF7L2",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=945"
-        },
-        {
-          "memberId": "946",
-          "geneSymbol": "TCF7L1",
-          "url": "https://www.pahgncb.com/genomedb/public/searchmember?mid=946"
-        }
-      ],
-      "createdAt": "0-0-0",
-      "updatedAt": "19-11-2025"
-    },
-    {
       "familyId": 156,
       "familySymbol": "TCF/LEF",
       "familyTitle": "TCF_LEF transcription factor family (TCF)",
@@ -7992,7 +7961,7 @@
       "familySymbol": "TGFBR",
       "familyTitle": "Transforming growth factor beta receptor family (TGFBR)",
       "familyUrl": "https://www.pahgncb.com/genomedb/public/searchfamily?fid=169",
-      "familyDescription": "TGF-β co-receptors / accessory receptors.",
+      "familyDescription": "TGF-\u03b2 co-receptors / accessory receptors.",
       "members": [
         {
           "memberId": "1005",
